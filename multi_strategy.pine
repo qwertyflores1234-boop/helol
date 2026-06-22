@@ -1,0 +1,86 @@
+//@version=5
+strategy("Multi-Strategy Backtester", overlay=true, default_qty_type=strategy.percent_of_equity, default_qty_value=10, initial_capital=10000, commission_type=strategy.commission.percent, commission_value=0.05, slippage=1)
+
+// ============== STRATEGY SELECTOR ==============
+strategyChoice = input.string("EMA Crossover", "Strategy", options=["EMA Crossover", "RSI Mean-Reversion", "MACD Momentum", "Bollinger Breakout"])
+
+// ============== GENERAL FILTERS ==============
+useDateFilter = input.bool(false, "Limit backtest to date range")
+startDate = input.time(timestamp("2023-01-01"), "Start")
+endDate   = input.time(timestamp("2026-01-01"), "End")
+inDateRange = not useDateFilter or (time >= startDate and time <= endDate)
+
+// Risk management (applies to every strategy)
+useSL = input.bool(true, "Use Stop Loss / Take Profit")
+slPerc = input.float(2.0, "Stop Loss %", minval=0.1) / 100
+tpPerc = input.float(4.0, "Take Profit %", minval=0.1) / 100
+
+// ============== 1. EMA CROSSOVER ==============
+emaFastLen = input.int(9, "EMA Fast", group="EMA Crossover")
+emaSlowLen = input.int(21, "EMA Slow", group="EMA Crossover")
+emaFast = ta.ema(close, emaFastLen)
+emaSlow = ta.ema(close, emaSlowLen)
+emaLong  = ta.crossover(emaFast, emaSlow)
+emaShort = ta.crossunder(emaFast, emaSlow)
+
+// ============== 2. RSI MEAN-REVERSION ==============
+rsiLen = input.int(14, "RSI Length", group="RSI Mean-Reversion")
+rsiOS = input.int(30, "Oversold", group="RSI Mean-Reversion")
+rsiOB = input.int(70, "Overbought", group="RSI Mean-Reversion")
+rsi = ta.rsi(close, rsiLen)
+rsiLong  = ta.crossover(rsi, rsiOS)
+rsiShort = ta.crossunder(rsi, rsiOB)
+
+// ============== 3. MACD MOMENTUM ==============
+macdFast = input.int(12, "MACD Fast", group="MACD Momentum")
+macdSlow = input.int(26, "MACD Slow", group="MACD Momentum")
+macdSig  = input.int(9, "MACD Signal", group="MACD Momentum")
+[macdLine, signalLine, histLine] = ta.macd(close, macdFast, macdSlow, macdSig)
+macdLong  = ta.crossover(macdLine, signalLine) and macdLine < 0
+macdShort = ta.crossunder(macdLine, signalLine) and macdLine > 0
+
+// ============== 4. BOLLINGER BREAKOUT ==============
+bbLen = input.int(20, "BB Length", group="Bollinger Breakout")
+bbMult = input.float(2.0, "BB StdDev", group="Bollinger Breakout")
+bbTrendLen = input.int(50, "Trend EMA Filter", group="Bollinger Breakout")
+basis = ta.sma(close, bbLen)
+dev = bbMult * ta.stdev(close, bbLen)
+upperBB = basis + dev
+lowerBB = basis - dev
+trendEMA = ta.ema(close, bbTrendLen)
+bbLong  = ta.crossover(close, upperBB) and close > trendEMA
+bbShort = ta.crossunder(close, lowerBB) and close < trendEMA
+
+// ============== SIGNAL ROUTING ==============
+var bool longSignal = false
+var bool shortSignal = false
+
+if strategyChoice == "EMA Crossover"
+    longSignal := emaLong
+    shortSignal := emaShort
+else if strategyChoice == "RSI Mean-Reversion"
+    longSignal := rsiLong
+    shortSignal := rsiShort
+else if strategyChoice == "MACD Momentum"
+    longSignal := macdLong
+    shortSignal := macdShort
+else
+    longSignal := bbLong
+    shortSignal := bbShort
+
+// ============== EXECUTION ==============
+if inDateRange and longSignal
+    strategy.entry("Long", strategy.long)
+    if useSL
+        strategy.exit("Exit Long", "Long", stop=close*(1-slPerc), limit=close*(1+tpPerc))
+
+if inDateRange and shortSignal
+    strategy.close("Long")
+
+// ============== PLOTS ==============
+plot(strategyChoice == "EMA Crossover" ? emaFast : na, color=color.blue, title="EMA Fast")
+plot(strategyChoice == "EMA Crossover" ? emaSlow : na, color=color.orange, title="EMA Slow")
+plot(strategyChoice == "Bollinger Breakout" ? upperBB : na, color=color.gray, title="BB Upper")
+plot(strategyChoice == "Bollinger Breakout" ? lowerBB : na, color=color.gray, title="BB Lower")
+plotshape(longSignal, title="Buy", location=location.belowbar, color=color.green, style=shape.triangleup, size=size.small)
+plotshape(shortSignal, title="Sell", location=location.abovebar, color=color.red, style=shape.triangledown, size=size.small)
