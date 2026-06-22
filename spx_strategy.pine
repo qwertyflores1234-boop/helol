@@ -1,0 +1,54 @@
+//@version=5
+strategy("SPX Trend Pullback Strategy", overlay=true, default_qty_type=strategy.percent_of_equity, default_qty_value=100, initial_capital=10000, commission_type=strategy.commission.percent, commission_value=0.05, slippage=1, pyramiding=0)
+
+// ============== CONCEPT ==============
+// Long-only. Only buys dips while SPX is in a confirmed uptrend (price > 200 EMA),
+// using an RSI pullback trigger for entry timing, and an ATR-based trailing stop
+// for exits. Designed for SPX/SPY daily chart. Long-only fits SPX's long-term
+// upward drift; the 200 EMA filter keeps you out during bear regimes (2008, 2022).
+
+// ============== INPUTS ==============
+trendLen   = input.int(200, "Trend Filter EMA Length")
+rsiLen     = input.int(14, "RSI Length")
+rsiBuy     = input.int(40, "RSI Pullback Trigger (buy below this)")
+rsiExit    = input.int(75, "RSI Overbought Exit")
+atrLen     = input.int(14, "ATR Length")
+atrMult    = input.float(3.0, "ATR Stop Multiplier")
+useDateFilter = input.bool(false, "Limit backtest to date range")
+startDate  = input.time(timestamp("2010-01-01"), "Start")
+endDate    = input.time(timestamp("2026-01-01"), "End")
+
+inDateRange = not useDateFilter or (time >= startDate and time <= endDate)
+
+// ============== INDICATORS ==============
+trendEMA = ta.ema(close, trendLen)
+rsi = ta.rsi(close, rsiLen)
+atr = ta.atr(atrLen)
+
+inUptrend = close > trendEMA
+pullbackTrigger = ta.crossunder(rsi, rsiBuy) and inUptrend
+overboughtExit = ta.crossover(rsi, rsiExit)
+
+// ATR trailing stop, recalculated only while in a position
+var float stopLevel = na
+longCondition = inDateRange and pullbackTrigger and strategy.position_size == 0
+
+if longCondition
+    strategy.entry("Long", strategy.long)
+    stopLevel := close - atr * atrMult
+
+if strategy.position_size > 0
+    stopLevel := math.max(stopLevel, close - atr * atrMult)
+    strategy.exit("Trail Stop", "Long", stop=stopLevel)
+
+if strategy.position_size > 0 and overboughtExit
+    strategy.close("Long")
+
+if not inUptrend and strategy.position_size > 0
+    strategy.close("Long")
+
+// ============== PLOTS ==============
+plot(trendEMA, color=color.orange, title="200 EMA Trend Filter")
+plot(strategy.position_size > 0 ? stopLevel : na, color=color.red, style=plot.style_linebr, title="Trailing Stop")
+plotshape(longCondition, title="Buy", location=location.belowbar, color=color.green, style=shape.triangleup, size=size.small)
+plotshape(overboughtExit and strategy.position_size > 0, title="Sell (RSI)", location=location.abovebar, color=color.red, style=shape.triangledown, size=size.small)
