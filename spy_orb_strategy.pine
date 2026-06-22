@@ -1,0 +1,75 @@
+//@version=5
+strategy("SPY 5-Min Opening Range Breakout", overlay=true, default_qty_type=strategy.percent_of_equity, default_qty_value=100, initial_capital=10000, commission_type=strategy.commission.percent, commission_value=0.05, slippage=1, pyramiding=0)
+
+// Opening Range Breakout: defines the high/low of the first N 5-min bars after
+// the open, then trades breakouts of that range. Long above ORH, short below ORL.
+// Flattens at end of day. Intended for SPY on the 5-minute chart, regular session.
+
+orbMinutes   = input.int(15, "Opening Range Length (minutes)", minval=5)
+allowShorts  = input.bool(true, "Allow Short Trades")
+useTrendFilter = input.bool(true, "Only trade with VWAP trend")
+useATRStop   = input.bool(true, "Use ATR Stop")
+atrLen       = input.int(14, "ATR Length")
+atrMult      = input.float(1.5, "ATR Stop Multiplier")
+rMultTarget  = input.float(2.0, "Take Profit (R multiple of risk)")
+flattenHour  = input.int(15, "Flatten Hour (exchange time)")
+flattenMin   = input.int(55, "Flatten Minute")
+
+// Session and opening range window
+sessionStart = timestamp("America/New_York", year, month, dayofmonth, 9, 30)
+orbBars = orbMinutes / 5
+newDay = ta.change(time("D")) != 0
+
+var float orHigh = na
+var float orLow = na
+var int barsSinceOpen = na
+var bool orSet = false
+
+if newDay
+    orHigh := na
+    orLow := na
+    barsSinceOpen := 0
+    orSet := false
+
+isRegularSession = not na(time(timeframe.period, "0930-1600:1234567", "America/New_York"))
+
+if isRegularSession
+    barsSinceOpen := nz(barsSinceOpen[1], 0) + 1
+    if barsSinceOpen <= orbBars
+        orHigh := math.max(nz(orHigh, low), high)
+        orLow  := math.min(nz(orLow, high), low)
+    else
+        orSet := true
+
+vwap5 = ta.vwap(hlc3)
+inFlattenWindow = hour == flattenHour and minute >= flattenMin
+
+atr = ta.atr(atrLen)
+
+longBreak  = orSet and isRegularSession and ta.crossover(close, orHigh) and (not useTrendFilter or close > vwap5)
+shortBreak = allowShorts and orSet and isRegularSession and ta.crossunder(close, orLow) and (not useTrendFilter or close < vwap5)
+
+var float longStop = na
+var float shortStop = na
+
+if longBreak and strategy.position_size == 0
+    riskDist = useATRStop ? atr * atrMult : (orHigh - orLow)
+    longStop := close - riskDist
+    strategy.entry("Long", strategy.long)
+    strategy.exit("Long Exit", "Long", stop=longStop, limit=close + riskDist * rMultTarget)
+
+if shortBreak and strategy.position_size == 0
+    riskDist = useATRStop ? atr * atrMult : (orHigh - orLow)
+    shortStop := close + riskDist
+    strategy.entry("Short", strategy.short)
+    strategy.exit("Short Exit", "Short", stop=shortStop, limit=close - riskDist * rMultTarget)
+
+if inFlattenWindow and strategy.position_size != 0
+    strategy.close_all("EOD Flatten")
+
+// ============== PLOTS ==============
+plot(orSet ? orHigh : na, color=color.green, style=plot.style_linebr, title="Opening Range High")
+plot(orSet ? orLow : na, color=color.red, style=plot.style_linebr, title="Opening Range Low")
+plot(vwap5, color=color.blue, title="VWAP")
+plotshape(longBreak, title="Buy", location=location.belowbar, color=color.green, style=shape.triangleup, size=size.small)
+plotshape(shortBreak, title="Sell", location=location.abovebar, color=color.red, style=shape.triangledown, size=size.small)
