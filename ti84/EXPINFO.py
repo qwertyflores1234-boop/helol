@@ -3,7 +3,7 @@ from math import *
 E={'e':e,'pi':pi,'ln':log,'sqrt':sqrt,'exp':exp,'log':lambda v:log(v)/log(10)}
 def N(m):
  while 1:
-  try:return float(eval(input(m).replace('^','**'),E))
+  try:return float(eval(input(m).lower().replace('^','**'),E))
   except:print('bad, retry')
 def F(v):return '%.6g'%v
 def M(v):return '' if v==0 else '-'+F(v) if v>0 else '+'+F(-v)

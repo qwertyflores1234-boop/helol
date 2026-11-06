@@ -4,12 +4,12 @@ from math import *
 E={'e':e,'pi':pi,'ln':log,'sqrt':sqrt,'exp':exp,'log':lambda v:log(v)/log(10)}
 def N(m):
  while 1:
-  try:return float(eval(input(m).replace('^','**'),E))
+  try:return float(eval(input(m).lower().replace('^','**'),E))
   except:print('bad, retry')
 def F(v):return '%.6g'%v
 E['logb']=lambda b,v:log(v)/log(b)
 def P(s):
- s=s.replace(' ','').replace('^','**');o=''
+ s=s.lower().replace(' ','').replace('^','**');o=''
  for i in range(len(s)):
   c=s[i]
   if i and (s[i-1].isdigit() or s[i-1]==')') and (c.isalpha() or c=='('):o+='*'

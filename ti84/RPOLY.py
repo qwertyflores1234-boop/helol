@@ -3,12 +3,12 @@ from math import *
 E={'e':e,'pi':pi,'ln':log,'sqrt':sqrt,'exp':exp,'log':lambda v:log(v)/log(10)}
 def N(m):
  while 1:
-  try:return float(eval(input(m).replace('^','**'),E))
+  try:return float(eval(input(m).lower().replace('^','**'),E))
   except:print('bad, retry')
 def F(v):return '%.6g'%(0 if abs(v)<1e-9 else v)
 def L(m):
  while 1:
-  try:return [float(eval(t.replace('^','**'),E)) for t in input(m).split(',')]
+  try:return [float(eval(t.replace('^','**'),E)) for t in input(m).lower().split(',')]
   except:print('bad, retry')
 def G():
  try:
