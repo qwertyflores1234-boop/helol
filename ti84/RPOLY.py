@@ -5,7 +5,7 @@ def N(m):
  while 1:
   try:return float(eval(input(m).replace('^','**'),E))
   except:print('bad, retry')
-def F(v):return '%.6g'%v
+def F(v):return '%.6g'%(0 if abs(v)<1e-9 else v)
 def L(m):
  while 1:
   try:return [float(eval(t.replace('^','**'),E)) for t in input(m).split(',')]
