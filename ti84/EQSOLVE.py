@@ -25,7 +25,7 @@ h=(b-a)/300;R=[];y=G(a)
 for i in range(1,301):
  p=a+(i-1)*h;q=p+h;z=G(q)
  if y==0:R.append(p)
- elif y!=None and z!=None and (y<0)!=(z<0):
+ elif y!=None and z!=None and z!=0 and (y<0)!=(z<0):
   u=y
   for j in range(50):
    m=(p+q)/2;w=G(m)
@@ -34,5 +34,6 @@ for i in range(1,301):
    else:q=m
   if w!=None and abs(w)<1e-4:R.append(m)
  y=z
+if y==0:R.append(b)
 for r in R:print('x='+F(r))
 if not R:print('none in range')
