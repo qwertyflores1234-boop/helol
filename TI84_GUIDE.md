@@ -1,63 +1,59 @@
 # TI-84 Plus CE Python: MATH 1311 Programs (E.1 to F.2)
 
-| Program | Sections | Use it for |
-|---|---|---|
-| `EXPFN.py` | E.1, E.2 | Building `y = a*b^x` from points or word problems, growth/decay, interest |
-| `LOGEQ.py` | E.3, E.4 | Logs, log/exp form, solving log and exponential equations, inverses |
-| `REGRESS.py` | F.1, F.2 | Linear, quadratic, polynomial, exponential, log and power trendlines (same as Excel) |
-| `SOLVER.py` | any | General f(x) tool: roots, derivative, integral, table |
+All programs are in the `ti84/` folder. Each one is small (under 2 KB) so it fits in the
+calculator's Python memory. Bigger programs give `MemoryError`.
 
 ## Install
-1. Install **TI Connect CE** on a computer and plug in the calculator.
-2. Drag the `.py` files onto the calculator (they become Python AppVars).
-3. On the calculator: **[prgm] → Python App → pick the file → Run**.
+1. In TI Connect CE → Calculator Explorer, delete the old **EXPFN, LOGEQ, REGRESS, SOLVER** if they're still there.
+2. Close the Python App on the calculator (2nd + mode).
+3. Drag all `.py` files from `ti84/` into Calculator Explorer.
+4. In the Send box, set **Location = RAM**. Archived files did not show up in the Python App.
+5. Unplug, then open **apps → Python**. Pick a program and press **[y=] Run**.
+
+## Which program to use
+
+### E.1 / E.2: Exponential functions
+| Program | Problem type |
+|---|---|
+| **EXP2PT** | Exponential through 2 points. For "starts at a, after x it's y", use x1=0, y1=a. |
+| **EXPRATE** | Starts at a and grows/decays r%, or doubles/halves (factor 2 or .5) every T |
+| **INTEREST** | A=P(1+r/n)^(nt). Use n=0 for continuous (Pe^(rt)). |
+| **CONVBK** | Convert a·b^x ⇄ a·e^(kx) (k=ln b, b=e^k) |
+
+EXP2PT and EXPRATE show both forms, the growth/decay %, and the doubling time or half-life.
+Then they let you find **y at x** or **x for y**.
+
+### E.3 / E.4: Logs and equations
+| Program | Problem type |
+|---|---|
+| **LOGB** | log_b(x)=y ⇄ b^y=x. Leave the unknown blank. It also evaluates logs. |
+| **EXPSOLVE** | a·b^(cx+d)+f=k, with steps |
+| **LOGSOLVE** | a·log_b(cx+d)+f=k, with steps |
+| **EQSOLVE** | **Any** equation (multiple logs, different bases...). Invalid answers are rejected automatically. |
+| **LOGINFO** | y=a·log_b(x−h)+k: domain, VA, x-int, inc/dec, inverse |
+| **EXPINFO** | y=a·b^(x−h)+k: range, HA, intercepts, inverse |
+| **CONDENSE** | c1·log(A)+c2·log(B)+… → one log |
+
+In EQSOLVE type `ln(x)`, `log(x)` (base 10), `logb(3,x)` (log base 3), `e^x`, `2x`.
+Give a search range (try −20 to 20; use 0 to 50 for logs).
+
+### F.1 / F.2: Regression (same results as Excel trendlines)
+Put x's in **L1** and y's in **L2** (stat → Edit). The programs ask "Use L1,L2?", so just press enter.
+Or press `n` and type the lists with commas.
+
+| Program | Fit |
+|---|---|
+| **RLIN** | Linear y=mx+b, r, R², correlation strength/direction |
+| **RPOLY** | Quadratic (degree 2) or polynomial (3 to 6), R² |
+| **REXP** | Exponential y=ae^(kx) **and** y=a·b^x, R² |
+| **RLOG** | Logarithmic y=c·ln(x)+b, R² |
+| **RPOW** | Power y=a·x^p, R² |
+
+All of them except RPOLY can predict **y at x** and **x for y**. RPOLY only does y at x;
+for x from y, use EQSOLVE with the polynomial.
 
 ## Typing tips
-- `^` works for powers, and `2x` means `2*x`.
-- `ln(` = natural log, `log(` = base 10, `logb(b,x)` = log base b, `e^x` or `exp(x)`.
-- Type letters with **[alpha]**. If your **[ln]** key pastes `log(`, type `ln(` by hand,
-  because in these programs `log` means base 10.
-- Rates are entered as percents (`5` means 5%).
-- Press **[enter]** to move past each result screen.
-
-## EXPFN: Exponential (E.1 / E.2)
-| Menu | Problem type | Example → answer |
-|---|---|---|
-| 1 | Through two points | (1,6),(3,54) → `y=2*3^x` |
-| 2 | Initial value + one later point | starts 200, 350 after 4 yrs → `b=(350/200)^(1/4)` |
-| 3 | Initial + grows/decays r% | 500, decays 8%/yr → `y=500*0.92^x` |
-| 4 | Initial + doubles/halves/triples every T | 100 g, half-life 5730 → `b=0.5^(1/5730)` |
-| 5/6 | You already have a, b (or a, k) | convert between `a*b^x` and `a*e^(kx)` |
-| 7 | Compound/continuous interest | $1000, 5%, monthly → APY 5.116%, doubles in 13.89 yrs |
-| 8 | Fact sheet | |
-
-After any model is made you can: **find y at x**, **find x for a y** (when it reaches a value),
-**see info** (growth/decay %, k, doubling time or half-life, asymptote, domain/range),
-**average rate of change** between two x's, and **time to multiply by a factor**.
-
-## LOGEQ: Logs and equations (E.3 / E.4)
-| Menu | Does | Example → answer |
-|---|---|---|
-| 1 | log_b(x) by change of base | log₂32 = 5 |
-| 2 | Log ⇄ exponential form (leave the unknown blank) | log₃x = 4 → x = 81 |
-| 3 | `a*b^(cx+d)+f=k` with steps | 5·2^(3x−1)+4=104 → x = 1.77398 |
-| 4 | `a*log_b(cx+d)+f=k` with steps | 2log₃(x+2)+5=17 → x = 727 |
-| 5 | **Any** equation, numeric. Also rejects answers outside the domain | log(x)+log(x−3)=1 → x=5 (−2 rejected); 2^(x+1)=3^(x−2) → 7.12853 |
-| 6 | Log function `a*log_b(x-h)+k`: domain, VA, intercepts, inc/dec, inverse | |
-| 7 | Exp function `a*b^(x-h)+k`: range, HA, intercepts, inverse | |
-| 8 | Condense logs (power/product/quotient rules) | 2log x + log y − 3log(z+1) → log((x)²(y)/(z+1)³) |
-| 9 | Fact sheet (all log properties) | |
-
-## REGRESS: Regression (F.1 / F.2)
-1. **1** to enter data (`1,2,3,4` for x's, then the y's), or **2** to load from lists L1/L2.
-2. Pick a fit: **4** linear, **5** quadratic, **6** polynomial (degree 2 to 6), **7** exponential,
-   **8** logarithmic, **9** power.
-   - Linear shows slope, intercept, **r**, **R²** and the correlation (strong/moderate/weak, positive/negative).
-   - Exponential shows Excel's `y=ae^(kx)` **and** the `y=a*b^x` form (b = e^k).
-   - Exp/log/power R² are computed the same way Excel does, so numbers match Excel trendlines.
-3. **10** compares R² for every fit type.
-4. **11** predicts using the last fit: y at an x, or which x gives a y.
-5. **12** converts `a*b^x ⇄ a*e^(kx)` (k = ln b, b = e^k).
-6. **13** plots the data and the trendline. **14** shows the fact sheet, including the Excel steps.
-
-The regression programs were checked against numpy. The E.1 to E.4 examples above were checked by hand.
+- Letters: [alpha]. Use the [^] key for powers. Negative numbers: (−) or minus both work.
+- `ln(` = natural log, `log(` = base 10. If the [ln] key pastes `log(`, type `ln` with letters.
+- For base e, type `e` when asked for b.
+- Press [on] to stop a frozen program.
