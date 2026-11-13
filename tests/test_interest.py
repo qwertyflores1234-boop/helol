@@ -1,9 +1,10 @@
-# Desktop tests for ti84/INTEREST.py (not for the calculator).
+# Desktop tests for ti84/INTEREST.py and ti84/ANNUITY.py (not for the calculator).
 # Run: python3 tests/test_interest.py
 import builtins, os, sys
 builtins.INTEREST_TEST = True  # stops the menu from running on import
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'ti84'))
-from INTEREST import gf, lump_t, lump_r, apy, fv, pv, ann_n, ann_r, simple
+from INTEREST import gf, lump_t, lump_r, apy, simple
+from ANNUITY import fv, pv, ann_n, ann_r
 
 fails = 0
 def check(name, got, want, tol):
